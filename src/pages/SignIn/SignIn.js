@@ -1,11 +1,14 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import './SignIn.css'
+import backUrl from '../../utils.js'
+import { useAuth } from "../../utils/authentication.js"
 
 
 const SignIn = () => {
     const navigate = useNavigate()
     const [user, setUser] = useState({ email: '', password: '' })
+    const { dispatch } = useAuth()
 
     function handleChange(event) {
         const inputName = event.target.name
@@ -21,6 +24,40 @@ const SignIn = () => {
         console.log(user)
     }
 
+    function handleSubmit(e) {
+        e.preventDefault()
+
+        fetch(`http://localhost:4000/users/login`, {
+            method: "POST",
+            body: JSON.stringify(user),
+            headers:{"Content-Type": "application/json"}
+        } )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok')
+                }
+                return response.json()
+            })
+            .then((data) => {
+                console.log("response data", data);
+                console.log("token?", data.token)
+                if(data && data.data && data.data.token) {
+                    dispatch({
+                        type: 'LOGIN',
+                        payload: {
+                            token: data.data.token,
+                            user: data.data.user
+                        }
+                    })
+                    console.log("got token")
+                    setUser({...user, token: data.data.token})
+                    localStorage.setItem("Token", data.data.token)
+                    navigate("/dashboard")
+                }
+
+            })
+    }
+
 
 
     return (
@@ -33,7 +70,7 @@ const SignIn = () => {
                     <input type="password" name="password" placeholder="password" onChange={handleChange} />
                 </p>
                 <p>
-                    <button onClick={() => navigate("/dashboard")}>Sign in</button>
+                    <button onClick={handleSubmit}>Sign in</button>
                 </p>
 
             </div>
