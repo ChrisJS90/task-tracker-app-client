@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect} from "react";
+import React, { createContext, useContext, useReducer, useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 
 
@@ -37,19 +37,32 @@ const authReducer = (state, action) => {
 // Create a provider component
 export const AuthProvider = ({ children }) => {
     const [state, dispatch] = useReducer(authReducer, initialState); // Use reducer to manage auth state
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate(); // Hook for programmatic navigation
 
     useEffect(() => {
         const token = localStorage.getItem('Token'); // Retrieve token from local storage
-        if (token) {
+        const user = localStorage.getItem('User')
+        console.log('Retrieved token', token)
+        console.log('Retrieved user', user)
+        if (token && user) {
             dispatch({
                 type: 'LOGIN',
-                payload: { token }
+                payload: { token, user: JSON.parse(user) }
             });
-        } else {
-            navigate('/login'); // Navigate to login if no token is found
+        } 
+        setLoading(false)
+    }, []);
+
+    useEffect(() => {
+        if(!state.isAuthenticated && !loading) {
+            navigate('/')
         }
-    }, [navigate]);
+    }, [state.isAuthenticated, navigate, loading]);
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
 
     return (
         <AuthContext.Provider value={{ state, dispatch }}>

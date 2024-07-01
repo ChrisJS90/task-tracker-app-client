@@ -16,7 +16,7 @@ function App() {
             <Route path='/' element={<SignIn />} />
             <Route path='/dashboard' element={<PrivateRoute />}>
               <Route path='' element={<Dashboard/>} />
-              </Route>
+            </Route>
           </Routes>
       </AuthProvider>
     </div>

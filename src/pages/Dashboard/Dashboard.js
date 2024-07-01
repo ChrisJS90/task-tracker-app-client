@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
+import client from '../../utils/client'
+import Modal from 'react-modal'
 import moment from 'moment'
 import Dropdown from 'react-dropdown'
 import 'react-dropdown/style.css'
 import './Dashboard.css'
 
 const Dashboard = () => {
+    const url = "http://localhost:4000/tasks"
     const [tasks, setTasks] = useState([]);
 
     useEffect(() => {
-        fetch(`http://localhost:4000/tasks`)
+        fetch(url)
             .then((res) => res.json())
             .then((data) => {
                 setTasks(data.data)
@@ -30,6 +33,67 @@ const Dashboard = () => {
 
     const defaultSort = sortOptions[0]
 
+    // Adding a new task
+    const [taskModalIsOpen, setTaskIsOpen] = useState(false);
+    const [newTask, setNewTask] = useState();
+
+    function openTaskModal() {
+        setTaskIsOpen(true)
+    }
+
+    function closeTaskModal() {
+        setNewTask()
+        setTaskIsOpen(false)
+    }
+
+    function handleTaskChange(e) {
+        const inputName = e.target.name
+        const inputValue = e.target.value
+
+        if(inputName === 'name') {
+            setNewTask({...newTask, name: inputValue})
+        } else if(inputName === 'type') {
+            setNewTask({...newTask, type: inputValue})
+        } else if(inputName === 'location') {
+            setNewTask({...newTask, location: inputValue})
+        } else if(inputName === 'status') {
+            setNewTask({...newTask, status: inputValue})
+        }
+    }
+
+    const handleAddTask = async event => {
+        event.preventDefault()
+        console.log('Button clicked')
+        const opts = {
+            method: "POST",
+            body: JSON.stringify(newTask),
+            headers: {"Content-Type": "application/json"}
+        }
+        const data = await client.post('/tasks', opts)
+        setTasks([...tasks, newTask])
+        setNewTask()
+        closeTaskModal()
+    }
+
+    // Editing a task
+    const [taskEdit, setTaskEdit] = useState()
+    const [editModalIsOpen, setEditModalOpen] = useState(false)
+
+    function openEditModal(task) {
+        setTaskEdit(task)
+        console.log(taskEdit)
+        // setEditModalOpen(true)
+    }
+
+    function closeEditModal() {
+        setEditModalOpen(false)
+    }
+
+    function testClick() {
+        console.log("button clicked")
+    }
+
+
     return (
         <div className='container'>
             <div id='sidebar'>
@@ -46,7 +110,17 @@ const Dashboard = () => {
                         <option value="type">Type/Contractor</option>
                     </select>
                 </form>
-                <button>Create New Task</button>
+                <button onClick={openTaskModal}>Create New Task</button>
+                <Modal isOpen={taskModalIsOpen} className="Modal" id='taskModal' overlayClassName="overlay">
+                    <form name='taskForm' id='new-task-form' onSubmit={handleAddTask}>
+                        <input type='text' name='name' placeholder='Task Name' onChange={handleTaskChange}/>
+                        <input type='text' name='type' placeholder='Type/Contractor' onChange={handleTaskChange}/>
+                        <input type='text' name='location' placeholder='Location' onChange={handleTaskChange}/>
+                        <input type='text' name='status' placeholder='Status' onChange={handleTaskChange}/>
+                        <input type='submit' value="Submit" />
+                    </form>
+                    <button onClick={closeTaskModal}>Cancel</button>
+                </Modal>
             </div>
 
             <div id='main-bar'>
@@ -73,7 +147,7 @@ const Dashboard = () => {
                                 <p className='table-item'>{`${createdDate}`}</p>
                                 <p className='table-item'>{`${updatedDate}`}</p>
                                 <p className='table-item' id='button-items'>
-                                    <button id='edit-button'>Edit</button>
+                                    <button id='edit-button' onClick={testClick}>Edit</button>
                                     <button id='delete-button'>Delete</button>
                                 </p>
                             </div>

@@ -51,7 +51,9 @@ const SignIn = () => {
                     })
                     console.log("got token")
                     setUser({...user, token: data.data.token})
+                    console.log(data.data.user)
                     localStorage.setItem("Token", data.data.token)
+                    localStorage.setItem("User", JSON.stringify(data.data.user))
                     navigate("/dashboard")
                 }
 
