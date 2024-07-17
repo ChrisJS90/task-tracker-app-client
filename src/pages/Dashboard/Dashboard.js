@@ -50,14 +50,14 @@ const Dashboard = () => {
         const inputName = e.target.name
         const inputValue = e.target.value
 
-        if(inputName === 'name') {
-            setNewTask({...newTask, name: inputValue})
-        } else if(inputName === 'type') {
-            setNewTask({...newTask, type: inputValue})
-        } else if(inputName === 'location') {
-            setNewTask({...newTask, location: inputValue})
-        } else if(inputName === 'status') {
-            setNewTask({...newTask, status: inputValue})
+        if (inputName === 'name') {
+            setNewTask({ ...newTask, name: inputValue })
+        } else if (inputName === 'type') {
+            setNewTask({ ...newTask, type: inputValue })
+        } else if (inputName === 'location') {
+            setNewTask({ ...newTask, location: inputValue })
+        } else if (inputName === 'status') {
+            setNewTask({ ...newTask, status: inputValue })
         }
     }
 
@@ -67,7 +67,7 @@ const Dashboard = () => {
         const opts = {
             method: "POST",
             body: JSON.stringify(newTask),
-            headers: {"Content-Type": "application/json"}
+            headers: { "Content-Type": "application/json" }
         }
         const data = await client.post('/tasks', opts)
         setTasks([...tasks, newTask])
@@ -81,16 +81,39 @@ const Dashboard = () => {
 
     function openEditModal(task) {
         setTaskEdit(task)
-        console.log(taskEdit)
-        // setEditModalOpen(true)
+        console.log('received task', task)
+        console.log('taskEdit state', taskEdit)
+        setEditModalOpen(true)
     }
 
     function closeEditModal() {
+        // setTaskEdit({
+        //     name: "",
+        //     type: "",
+        //     location: "",
+        //     status: "",
+        // })
         setEditModalOpen(false)
     }
 
-    function testClick() {
-        console.log("button clicked")
+    function handleEditChange(e) {
+        const inputName = e.target.name
+        const inputValue = e.target.value
+
+        if (inputName === 'name') {
+            setTaskEdit({ ...taskEdit, name: inputValue })
+        } else if (inputName === 'type') {
+            setTaskEdit({ ...taskEdit, type: inputValue })
+        } else if (inputName === 'location') {
+            setTaskEdit({ ...taskEdit, location: inputValue })
+        } else if (inputName === 'status') {
+            setTaskEdit({ ...taskEdit, status: inputValue })
+        }
+    }
+
+    function handleEditTask(e) {
+        e.preventDefault()
+        console.log(taskEdit)
     }
 
 
@@ -113,10 +136,10 @@ const Dashboard = () => {
                 <button onClick={openTaskModal}>Create New Task</button>
                 <Modal isOpen={taskModalIsOpen} className="Modal" id='taskModal' overlayClassName="overlay">
                     <form name='taskForm' id='new-task-form' onSubmit={handleAddTask}>
-                        <input type='text' name='name' placeholder='Task Name' onChange={handleTaskChange}/>
-                        <input type='text' name='type' placeholder='Type/Contractor' onChange={handleTaskChange}/>
-                        <input type='text' name='location' placeholder='Location' onChange={handleTaskChange}/>
-                        <input type='text' name='status' placeholder='Status' onChange={handleTaskChange}/>
+                        <input type='text' name='name' placeholder='Task Name' onChange={handleTaskChange} />
+                        <input type='text' name='type' placeholder='Type/Contractor' onChange={handleTaskChange} />
+                        <input type='text' name='location' placeholder='Location' onChange={handleTaskChange} />
+                        <input type='text' name='status' placeholder='Status' onChange={handleTaskChange} />
                         <input type='submit' value="Submit" />
                     </form>
                     <button onClick={closeTaskModal}>Cancel</button>
@@ -135,6 +158,7 @@ const Dashboard = () => {
                         <p className='table-header'></p>
                     </div>
                     {tasks.map((task) => {
+                        console.log('is edit modal open?', editModalIsOpen)
                         const createdDate = formatDate(task.createdAt)
                         const updatedDate = formatDate(task.updatedAt)
 
@@ -147,7 +171,17 @@ const Dashboard = () => {
                                 <p className='table-item'>{`${createdDate}`}</p>
                                 <p className='table-item'>{`${updatedDate}`}</p>
                                 <p className='table-item' id='button-items'>
-                                    <button id='edit-button' onClick={testClick}>Edit</button>
+                                    <button id='edit-button' onClick={() => openEditModal(task)}>Edit</button>
+                                    <Modal isOpen={editModalIsOpen} className="Modal" id='taskModal' overlayClassName='overlay'>
+                                        <form name='editTask' onSubmit={handleEditTask}>
+                                            <input type='text' name='name' defaultValue={task.name} onChange={handleEditChange} />
+                                            <input type='text' name='type' defaultValue={task.type} onChange={handleEditChange} />
+                                            <input type='text' name='location' defaultValue={task.location} onChange={handleEditChange} />
+                                            <input type='text' name='status' defaultValue={task.status} onChange={handleEditChange} />
+                                            <input type='submit' value="Submit" />
+                                        </form>
+                                        <button onClick={closeEditModal}>Cancel</button>
+                                    </Modal>
                                     <button id='delete-button'>Delete</button>
                                 </p>
                             </div>
