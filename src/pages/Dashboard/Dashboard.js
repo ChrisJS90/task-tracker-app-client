@@ -87,12 +87,12 @@ const Dashboard = () => {
     }
 
     function closeEditModal() {
-        // setTaskEdit({
-        //     name: "",
-        //     type: "",
-        //     location: "",
-        //     status: "",
-        // })
+        setTaskEdit({
+            name: "",
+            type: "",
+            location: "",
+            status: "",
+        })
         setEditModalOpen(false)
     }
 
@@ -111,10 +111,50 @@ const Dashboard = () => {
         }
     }
 
-    function handleEditTask(e) {
-        e.preventDefault()
-        console.log(taskEdit)
+    const handleEditTask = async event => {
+        // event.preventDefault()
+        // ^^ Leaving in in case re-renders cause an issue, however I want re-render so that edits are immediately shown
+        const opts = {
+            method: "PUT",
+            body: JSON.stringify(taskEdit),
+            // ^^ check if this stringifies the id number
+            headers: { "Content-Type": "application/json"}
+        }
+        const data = await client.put('/tasks', opts)
+        closeEditModal()
     }
+
+    // Deleting a task
+    const [deleteModalIsOpen, setDeleteIsOpen] = useState(false)
+    const [taskToDelete, setTaskToDelete] = useState()
+
+    function openDeleteModal(task) {
+        setTaskToDelete(task)
+        setDeleteIsOpen(true)
+    }
+
+    function closeDeleteModal() {
+        setTaskToDelete()
+        setDeleteIsOpen(false)
+    }
+
+    const handleDeleteTask = async event => {
+        // event.preventDefault()
+
+        const opts = {
+            method: "DELETE",
+            body: JSON.stringify(taskToDelete),
+            headers: { "Content-Type": "application/json"}
+        }
+        const data = await client.delete('/tasks', opts)
+
+        // The rerender did not remove the task just deleted, requiring a refresh
+        const newTaskList = tasks.filter((task) => task.id != taskToDelete.id )
+        setTasks(newTaskList)
+        closeDeleteModal()
+    }
+
+
 
 
     return (
@@ -158,7 +198,7 @@ const Dashboard = () => {
                         <p className='table-header'></p>
                     </div>
                     {tasks.map((task) => {
-                        console.log('is edit modal open?', editModalIsOpen)
+                        // console.log('task id?', task.id)
                         const createdDate = formatDate(task.createdAt)
                         const updatedDate = formatDate(task.updatedAt)
 
@@ -173,7 +213,7 @@ const Dashboard = () => {
                                 <p className='table-item' id='button-items'>
                                     <button id='edit-button' onClick={() => openEditModal(task)}>Edit</button>
                                     <Modal isOpen={editModalIsOpen} className="Modal" id='taskModal' overlayClassName='overlay'>
-                                        <form name='editTask' onSubmit={handleEditTask}>
+                                        <form name='taskForm' id='editTaskForm' onSubmit={handleEditTask}>
                                             <input type='text' name='name' defaultValue={task.name} onChange={handleEditChange} />
                                             <input type='text' name='type' defaultValue={task.type} onChange={handleEditChange} />
                                             <input type='text' name='location' defaultValue={task.location} onChange={handleEditChange} />
@@ -182,7 +222,14 @@ const Dashboard = () => {
                                         </form>
                                         <button onClick={closeEditModal}>Cancel</button>
                                     </Modal>
-                                    <button id='delete-button'>Delete</button>
+                                    <button id='delete-button' onClick={() => openDeleteModal(task)}>Delete</button>
+                                    <Modal isOpen={deleteModalIsOpen} className="Modal" id='taskModal' overlayClassName='overlay'>
+                                        <p>WARNING</p>
+                                        <p>Deleting this task is irreversible</p>
+                                        <p>Do you wish to delete this task?</p>
+                                        <button onClick={handleDeleteTask}>Yes, delete task</button>
+                                        <button onClick={closeDeleteModal}>Cancel</button>
+                                    </Modal>
                                 </p>
                             </div>
                         )
